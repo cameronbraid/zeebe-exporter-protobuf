@@ -23,6 +23,8 @@ import com.google.protobuf.ListValue;
 import com.google.protobuf.NullValue;
 import com.google.protobuf.Struct;
 import com.google.protobuf.Value;
+import com.google.protobuf.Value.KindCase;
+
 import io.zeebe.exporter.proto.Schema.RecordMetadata;
 import io.zeebe.exporter.proto.Schema.VariableDocumentRecord;
 import io.zeebe.exporter.proto.Schema.VariableDocumentRecord.UpdateSemantics;
@@ -50,9 +52,11 @@ import io.zeebe.protocol.record.value.WorkflowInstanceSubscriptionRecordValue;
 import io.zeebe.protocol.record.value.deployment.DeployedWorkflow;
 import io.zeebe.protocol.record.value.deployment.DeploymentResource;
 import java.util.EnumMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * As a one class god factory...not great but keeping it around since it has all the code necessary
@@ -173,9 +177,13 @@ public final class RecordTransformer {
 
   private static final EnumMap<WorkflowInstanceRecord.BpmnElementType, BpmnElementType>
   BPMN_ELEMENT_TYPE_MAPPING_REVERSE = new EnumMap<>(WorkflowInstanceRecord.BpmnElementType.class);
-
   static {
     BPMN_ELEMENT_TYPE_MAPPING.forEach((k, v)->BPMN_ELEMENT_TYPE_MAPPING_REVERSE.put(v, k));
+  }
+
+  private static final EnumMap<RecordMetadata.RecordType, RecordType> RECORD_TYPE_MAPPING_REVERSE = new EnumMap<>(RecordMetadata.RecordType.class);
+  static {
+    RECORD_TYPE_MAPPING.forEach((k, v)->RECORD_TYPE_MAPPING_REVERSE.put(v, k));
   }
 
   private RecordTransformer() {}
@@ -423,6 +431,9 @@ public final class RecordTransformer {
   public static BpmnElementType fromBpmnElementType(Schema.WorkflowInstanceRecord.BpmnElementType type) {
     return BPMN_ELEMENT_TYPE_MAPPING_REVERSE.get(type);
   }
+  public static RecordType fromRecordType(RecordMetadata.RecordType type) {
+    return RECORD_TYPE_MAPPING_REVERSE.get(type);
+  }
 
   private static Schema.WorkflowInstanceSubscriptionRecord toWorkflowInstanceSubscriptionRecord(
       Record<WorkflowInstanceSubscriptionRecordValue> record) {
@@ -506,6 +517,40 @@ public final class RecordTransformer {
 
     return builder.build();
   }
+  public static Map<String,Object> fromStruct(Struct struct) {
+    
+    Map<String, Object> map = new LinkedHashMap<>(); // to keep field ordering the same
+
+    struct.getFieldsMap().forEach((k, v)->{
+      map.put(k, fromValue(v));
+    });
+
+    return map;
+
+  }
+
+  private static Object fromValue(Value value) {
+    if (value.getKindCase() == KindCase.NULL_VALUE) {
+      return null;
+    }
+    if (value.getKindCase() == KindCase.NUMBER_VALUE) {
+      return value.getNumberValue();
+    }
+    if (value.getKindCase() == KindCase.BOOL_VALUE) {
+      return value.getBoolValue();
+    }
+    if (value.getKindCase() == KindCase.LIST_VALUE) {
+      return value.getListValue().getValuesList().stream().map(RecordTransformer::fromValue).collect(Collectors.toList());
+    }
+    if (value.getKindCase() == KindCase.STRUCT_VALUE) {
+      return fromStruct(value.getStructValue());
+    }
+    if (value.getKindCase() == KindCase.STRING_VALUE) {
+      return value.getStringValue();
+    }
+    throw new IllegalArgumentException(String.format("Unexpected value kind %s, should be one of: null, Number, Boolean, List, Struct, String", value.getKindCase()));
+
+  }
 
   private static Value toValue(Object object) {
     final Value.Builder builder = Value.newBuilder();
@@ -538,4 +583,5 @@ public final class RecordTransformer {
 
     return builder.build();
   }
+
 }
