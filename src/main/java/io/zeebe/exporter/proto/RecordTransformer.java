@@ -170,6 +170,14 @@ public final class RecordTransformer {
         BpmnElementType.SUB_PROCESS, WorkflowInstanceRecord.BpmnElementType.SUB_PROCESS);
   }
 
+
+  private static final EnumMap<WorkflowInstanceRecord.BpmnElementType, BpmnElementType>
+  BPMN_ELEMENT_TYPE_MAPPING_REVERSE = new EnumMap<>(WorkflowInstanceRecord.BpmnElementType.class);
+
+  static {
+    BPMN_ELEMENT_TYPE_MAPPING.forEach((k, v)->BPMN_ELEMENT_TYPE_MAPPING_REVERSE.put(v, k));
+  }
+
   private RecordTransformer() {}
 
   public static GeneratedMessageV3 toProtobufMessage(Record record) {
@@ -411,6 +419,9 @@ public final class RecordTransformer {
       BpmnElementType type) {
     return BPMN_ELEMENT_TYPE_MAPPING.getOrDefault(
         type, WorkflowInstanceRecord.BpmnElementType.UNKNOWN_BPMN_ELEMENT_TYPE);
+  }
+  public static BpmnElementType fromBpmnElementType(Schema.WorkflowInstanceRecord.BpmnElementType type) {
+    return BPMN_ELEMENT_TYPE_MAPPING_REVERSE.get(type);
   }
 
   private static Schema.WorkflowInstanceSubscriptionRecord toWorkflowInstanceSubscriptionRecord(
