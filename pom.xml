@@ -6,7 +6,7 @@
   <name>Zeebe Exporter Protobuf Schema</name>
   <groupId>io.zeebe</groupId>
   <artifactId>zeebe-exporter-protobuf</artifactId>
-  <version>0.12.0-SNAPSHOT</version>
+  <version>0.12.0-protobuf-source-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <url>https://github.com/zeebe-io/zeebe-exporter-protobuf/java</url>
@@ -291,6 +291,44 @@
             </additionalSourceDirectory>
           </additionalSourceDirectories>
         </configuration>
+      </plugin>
+
+
+      <!-- CHECKSTYLE -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>${plugin.version.checkstyle}</version>
+        <!-- dependency on build tool to reference the checkstyle cfg -->
+        <dependencies>
+          <dependency>
+            <groupId>io.zeebe</groupId>
+            <artifactId>zeebe-build-tools</artifactId>
+            <version>${version.zeebe}</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <configLocation>check/.checkstyle.xml</configLocation>
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+          <encoding>UTF-8</encoding>
+          <failOnViolation>true</failOnViolation>
+          <sourceDirectories>
+            <sourceDirectory>${project.build.sourceDirectory}</sourceDirectory>
+            <sourceDirectory>${project.build.testSourceDirectory}</sourceDirectory>
+            <sourceDirectory>${project.basedir}/src/test/jmh</sourceDirectory>
+          </sourceDirectories>
+        </configuration>
+        <executions>
+          <execution>
+            <id>validate-java</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+            <configuration>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
 
       <!-- Shade Plugin -->
