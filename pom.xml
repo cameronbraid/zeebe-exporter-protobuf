@@ -6,7 +6,7 @@
   <name>Zeebe Exporter Protobuf Schema</name>
   <groupId>io.zeebe</groupId>
   <artifactId>zeebe-exporter-protobuf</artifactId>
-  <version>protobuf-source-1</version>
+  <version>0.12-SNAPSHOT-protobuf-source-1</version>
   <packaging>jar</packaging>
 
   <url>https://github.com/zeebe-io/zeebe-exporter-protobuf/java</url>
@@ -384,7 +384,7 @@
     <repository>
       <id>zeebe</id>
       <name>Zeebe Repository</name>
-      <url>https://nexus.drivenow.com.au/repository/releases/</url>
+      <url>https://app.camunda.com/nexus/content/repositories/zeebe-io/</url>
       <releases>
         <enabled>true</enabled>
       </releases>
